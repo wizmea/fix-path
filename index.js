@@ -1,4 +1,3 @@
-import process from 'node:process';
 import {shellPathSync} from 'shell-path';
 
 export default function fixPath() {
