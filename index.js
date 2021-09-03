@@ -1,6 +1,44 @@
 const execa = require('execa')
-const stripAnsi = require('strip-ansi')
-const defaultShell = require('default-shell')
+
+const os = require('os')
+
+const defaultShell = (() => {
+	const {env} = process;
+
+	if (process.platform === 'win32') {
+		return env.COMSPEC || 'cmd.exe';
+	}
+
+	try {
+		const {shell} = os.userInfo();
+		if (shell) {
+			return shell;
+		}
+	} catch {}
+
+	if (process.platform === 'darwin') {
+		return env.SHELL || '/bin/zsh';
+	}
+
+	return env.SHELL || '/bin/sh';
+})()
+
+function ansiRegex({onlyFirst = false} = {}) {
+	const pattern = [
+		'[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
+		'(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))'
+	].join('|');
+
+	return new RegExp(pattern, onlyFirst ? undefined : 'g');
+}
+
+function stripAnsi(string) {
+	if (typeof string !== 'string') {
+		throw new TypeError(`Expected a \`string\`, got \`${typeof string}\``);
+	}
+
+	return string.replace(ansiRegex(), '');
+}
 
 const args = [
 	'-ilc',
@@ -24,7 +62,7 @@ const parseEnv = env => {
 	return returnValue;
 };
 
-export async function shellEnv(shell) {
+async function shellEnv(shell) {
 	if (process.platform === 'win32') {
 		return process.env;
 	}
@@ -41,7 +79,7 @@ export async function shellEnv(shell) {
 	}
 }
 
-export function shellEnvSync(shell) {
+function shellEnvSync(shell) {
 	if (process.platform === 'win32') {
 		return process.env;
 	}
@@ -59,6 +97,7 @@ export function shellEnvSync(shell) {
 }
 
 async function shellPath() {
+	defaultShell()
 	const {PATH} = await shellEnv();
 	return PATH;
 }
@@ -68,8 +107,7 @@ function shellPathSync() {
 	return PATH;
 }
 
-
-module.exports = function fixPath() {
+const fixPath = function () {
 	if (process.platform === 'win32') {
 		return;
 	}
@@ -81,3 +119,5 @@ module.exports = function fixPath() {
 		process.env.PATH,
 	].join(':');
 }
+
+module.exports = fixPath
