@@ -34,9 +34,7 @@
 		"electron"
 	],
 	"dependencies": {
-		"default-shell": "^2.0.0",
-		"execa": "^5.1.1",
-		"strip-ansi": "^7.0.0"
+		"execa": "^5.1.1"
 	},
 	"devDependencies": {
 		"ava": "^3.15.0",
