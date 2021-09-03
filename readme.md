@@ -13,7 +13,7 @@ $ npm install fix-path
 ## Usage
 
 ```js
-import fixPath from 'fix-path';
+const fixPath = require('fix-path');
 
 console.log(process.env.PATH);
 //=> '/usr/bin'
